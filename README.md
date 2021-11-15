@@ -2,8 +2,10 @@
 A mini tilemap editor.
 ![](./resources/screenshot.png)
 
-## Why 'mini'?
-Because it's intended to be a **compact** map editor, not a huge one like Tiled.
+## Features
+- Small: a compact editor great for prototyping maps
+- Simple-to-use
+- Export functionality: design your maps and export them to `.h` files!
 
 ## Usage
 ```
