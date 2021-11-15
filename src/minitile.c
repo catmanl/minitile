@@ -14,6 +14,7 @@
 #include "third_party/raygui.h"
 
 #define ADDITIONAL_SIZE   140
+#define MINITILE_VERSION  1.1
 
 // Defines to fit the program
 #define mt_sheet_t          Texture2D
@@ -34,6 +35,8 @@ typedef struct mt_data {
   int scale;
   int layer;
   const char *info_message;
+  bool display_exported;
+  int frames_counter;
 
   // raylib-specific stuff
   mt_sheet_t sheet_loaded;
@@ -56,6 +59,7 @@ static void draw_gui_controls(void);
 static void show_tileset(void);
 
 mt_data DATA = { 0 };
+mt_map_t MAP = { 0 };
 
 void mt_init(int grid_width, int grid_height, int tile_size, const char *sheet_path)
 {
@@ -81,6 +85,8 @@ void mt_init(int grid_width, int grid_height, int tile_size, const char *sheet_p
   DATA.screen_width = screen_width;
   DATA.screen_height = screen_height;
   DATA.scale = scale;
+  DATA.display_exported = false;
+  DATA.frames_counter = 0;
   DATA.sheet_loaded = mt_load_sheet(sheet_path);
   DATA.camera = (Camera2D){
     .offset = (Vector2){ 0.0f, 0.0f },
@@ -102,6 +108,12 @@ void mt_init(int grid_width, int grid_height, int tile_size, const char *sheet_p
     DATA.grid_on = true;
     TileMapInitSize(DATA.tilemap, DATA.grid_width, DATA.grid_height);
     TileMapClearGrid(DATA.tilemap);
+    MAP.handle = malloc(sizeof(int)*DATA.grid_width*DATA.grid_height);
+    MAP.width = DATA.grid_width;
+    MAP.height = DATA.grid_height;
+    for (int i = 0; i < MAP.width*MAP.height; i++) {
+      MAP.handle[i] = DATA.tilemap->grid[i];
+    }
   } else {
     printf("minitile: tilesheet must exist.\nminitile: input value: \"%s\"\n", sheet_path);
     exit(1);
@@ -122,27 +134,34 @@ void mt_update(void)
 void mt_close(void)
 {
   TileMapDestroy(DATA.tilemap);
+  free(MAP.handle);
   mt_unload_sheet(DATA.sheet_loaded);
   CloseWindow();
 }
 
 mt_map_t mt_get_map(void)
 {
-  mt_map_t map = { 0 };
-  for (int i = 0; i < DATA.grid_width*DATA.grid_height; i++) {
-    map.handle[i] = DATA.tilemap->grid[i];
+  MAP.width = DATA.grid_width;
+  MAP.height = DATA.grid_height;
+  for (int i = 0; i < MAP.width*MAP.height; i++) {
+    MAP.handle[i] = DATA.tilemap->grid[i];
   }
-  map.width = DATA.grid_width;
-  map.height = DATA.grid_height;
-
-  return map;
+  return MAP;
 }
 
 static void mt__update(void)
 {
   check_input();
   
-  DATA.info_message = TextFormat("Minitile v1.0\t\t\t\t\t\tTiles count: %d\nMap width: %d\t\t\t\tIndex: %d (use A and D)\nMap height: %d\t\t\t Cursor: %d,%d\n", DATA.tileset->tileCount, DATA.grid_width, DATA.tileset_index, DATA.grid_height, DATA.mouse_tile_x, DATA.mouse_tile_y);
+  DATA.info_message = TextFormat("Minitile v%.1f\t\t\t\t\t\tTiles count: %d\nMap width: %d\t\t\t\tIndex: %d (use A and D)\nMap height: %d\t\t\t Cursor: %d,%d\n", MINITILE_VERSION, DATA.tileset->tileCount, DATA.grid_width, DATA.tileset_index, DATA.grid_height, DATA.mouse_tile_x, DATA.mouse_tile_y);
+
+  if (DATA.display_exported) {
+    DATA.frames_counter++;
+    if (DATA.frames_counter >= 180) {
+      DATA.display_exported = false;
+      DATA.frames_counter = 0;
+    }
+  }
 }
 
 static void check_input(void)
@@ -197,20 +216,31 @@ static void draw_tile_preview(void)
 static void draw_gui_controls(void)
 {
   // Display grid
-  Rectangle grid_check = { (float)(GetScreenWidth()-ADDITIONAL_SIZE + 10), 10.0f, 32.0f, 32.0f };
+  Rectangle grid_check = { (float)(GetScreenWidth() - ADDITIONAL_SIZE + 10), 10.0f, 32.0f, 32.0f };
   DATA.grid_on = GuiCheckBox(grid_check, "", DATA.grid_on);
-  DrawText("DISPLAY GRID", grid_check.x+grid_check.width + 5, grid_check.y+grid_check.height/2 - grid_check.y/2, 10, WHITE);
+  DrawText("DISPLAY GRID", grid_check.x + grid_check.width + 5, grid_check.y + grid_check.height/2 - grid_check.y/2, 10, WHITE);
 
   // Clear
-  Rectangle clear_button = { (float)(GetScreenWidth()-ADDITIONAL_SIZE + 10), 50.0f, 110.0f, 32.0f };
+  Rectangle clear_button = { (float)(GetScreenWidth() - ADDITIONAL_SIZE + 10), 50.0f, 110.0f, 32.0f };
   if (GuiButton(clear_button, "Clear")) {
     TileMapClearGrid(DATA.tilemap);
   }
 
   // Show the tileset
-  Rectangle tileset_button = { (float)(GetScreenWidth()-ADDITIONAL_SIZE + 10), 92.0f, 110.0f, 32.0f };
+  Rectangle tileset_button = { (float)(GetScreenWidth() - ADDITIONAL_SIZE + 10), 92.0f, 110.0f, 32.0f };
   if (GuiButton(tileset_button, "Show tileset")) {
     DATA.layer = LAYER_WINDOW;
+  }
+
+  // Export the map
+  Rectangle export_button = { (float)(GetScreenWidth() - ADDITIONAL_SIZE + 10), 134.0f, 110.0f, 32.0f };
+  if (GuiButton(export_button, "Export to .h file")) {
+    mt_export_map(mt_get_map(), "mt_map.h");
+    DATA.display_exported = true;
+  }
+
+  if (DATA.display_exported) {
+    DrawText("Exported map to\n    mt_map.h!", export_button.x + 15, export_button.y + 40, 10, WHITE);
   }
 
   show_tileset();
@@ -220,6 +250,7 @@ static void show_tileset(void)
 {
   if (DATA.layer == LAYER_WINDOW) {
     // Display a fake window
+    GuiLock();
     Rectangle window = { 4.0f, 4.0f, (float)(GetScreenWidth() - 8.0f), (float)(GetScreenHeight() - 8.0f) };
     DrawRectangleRec(window, DARKGRAY);
     DrawRectangleLinesEx(window, 2, LIGHTGRAY);
@@ -231,6 +262,7 @@ static void show_tileset(void)
 
     // Exit the window
     Rectangle exit_button = { window.width/2 - 110.0f/2, window.height - 110.0f/2, 110.0f, 32.0f };
+    GuiUnlock();
     if (GuiButton(exit_button, "Go back")) {
       DATA.layer = LAYER_EDITOR;
     }
