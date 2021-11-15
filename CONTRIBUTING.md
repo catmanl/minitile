@@ -1,7 +1,8 @@
 # Contributing
 ## Fork the repository
+On Github, press `Fork` and do the following on your command line:
 ```
-$ git clone https://github.com/catmanl/minitile.git minitile
+$ git clone https://github.com/yourusername/minitile.git minitile
 $ cd minitile
 ```
 
