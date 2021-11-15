@@ -126,6 +126,18 @@ void mt_close(void)
   CloseWindow();
 }
 
+mt_map_t mt_get_map(void)
+{
+  mt_map_t map = { 0 };
+  for (int i = 0; i < DATA.grid_width*DATA.grid_height; i++) {
+    map.handle[i] = DATA.tilemap->grid[i];
+  }
+  map.width = DATA.grid_width;
+  map.height = DATA.grid_height;
+
+  return map;
+}
+
 static void mt__update(void)
 {
   check_input();

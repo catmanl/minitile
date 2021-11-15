@@ -14,6 +14,12 @@ typedef struct mt_sheet_t {
   int mipmaps;
 } mt_sheet_t;
 
+typedef struct mt_map_t {
+  int *handle;
+  int width;
+  int height;
+} mt_map_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,6 +27,9 @@ void mt_init(int grid_width, int grid_height, int tile_size, const char *sheet_p
 bool mt_run(void);
 void mt_update(void);
 void mt_close(void);
+mt_map_t mt_get_map(void);
+
+void mt_export_map(mt_map_t map, const char *filename);
 #ifdef __cplusplus
 }
 #endif
