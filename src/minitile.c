@@ -166,7 +166,7 @@ static void mt_draw(void)
       TileMapDrawGrid(DATA.tilemap, DATA.grid_on? LIGHTGRAY : BLANK);
       draw_tile_preview();
     EndMode2D();
-    DrawText(DATA.info_message, 10, GetScreenHeight() - (ADDITIONAL_SIZE-10), 20, WHITE);
+    DrawText(DATA.info_message, 10, GetScreenHeight() - (ADDITIONAL_SIZE - 10), 20, WHITE);
     draw_gui_controls();
   EndDrawing();
 }
@@ -185,18 +185,18 @@ static void draw_tile_preview(void)
 static void draw_gui_controls(void)
 {
   // Display grid
-  Rectangle grid_check = { (float)(GetScreenWidth()-ADDITIONAL_SIZE+10), 10.0f, 32.0f, 32.0f };
+  Rectangle grid_check = { (float)(GetScreenWidth()-ADDITIONAL_SIZE + 10), 10.0f, 32.0f, 32.0f };
   DATA.grid_on = GuiCheckBox(grid_check, "", DATA.grid_on);
-  DrawText("DISPLAY GRID", grid_check.x+grid_check.width+5, grid_check.y+grid_check.height/2-grid_check.y/2, 10, WHITE);
+  DrawText("DISPLAY GRID", grid_check.x+grid_check.width + 5, grid_check.y+grid_check.height/2 - grid_check.y/2, 10, WHITE);
 
   // Clear
-  Rectangle clear_button = { (float)(GetScreenWidth()-ADDITIONAL_SIZE+10), 50.0f, 110.0f, 32.0f };
+  Rectangle clear_button = { (float)(GetScreenWidth()-ADDITIONAL_SIZE + 10), 50.0f, 110.0f, 32.0f };
   if (GuiButton(clear_button, "Clear")) {
     TileMapClearGrid(DATA.tilemap);
   }
 
   // Show the tileset
-  Rectangle tileset_button = { (float)(GetScreenWidth()-ADDITIONAL_SIZE+10), 92.0f, 110.0f, 32.0f };
+  Rectangle tileset_button = { (float)(GetScreenWidth()-ADDITIONAL_SIZE + 10), 92.0f, 110.0f, 32.0f };
   if (GuiButton(tileset_button, "Show tileset")) {
     DATA.layer = LAYER_WINDOW;
   }
@@ -208,13 +208,13 @@ static void show_tileset(void)
 {
   if (DATA.layer == LAYER_WINDOW) {
     // Display a fake window
-    Rectangle window = { 4.0f, 4.0f, (float)(GetScreenWidth()-8.0f), (float)(GetScreenHeight()-8.0f) };
+    Rectangle window = { 4.0f, 4.0f, (float)(GetScreenWidth() - 8.0f), (float)(GetScreenHeight() - 8.0f) };
     DrawRectangleRec(window, DARKGRAY);
     DrawRectangleLinesEx(window, 2, LIGHTGRAY);
 
     // Draw the tilesheet with an outline
     DrawTexture(DATA.tilemap->tileSet->texture, window.x + 4.0f, window.y + 4.0f, WHITE);
-    Rectangle outline = { window.x+4.0f, window.y+4.0f, DATA.tilemap->tileSet->texture.width, DATA.tilemap->tileSet->texture.height };
+    Rectangle outline = { window.x + 4.0f, window.y + 4.0f, DATA.tilemap->tileSet->texture.width, DATA.tilemap->tileSet->texture.height };
     DrawRectangleLinesEx(outline, 1, BLACK);
 
     // Exit the window
