@@ -1,6 +1,7 @@
 CC = gcc
 SRC = main.c \
-			minitile.c
+			minitile.c \
+			export.c
 LIBFILE = third_party/libraylib.a		# Linux version
 CFLAGS = -Wall
 LDLIBS = -lGL -lm -lpthread -ldl
