@@ -30,7 +30,7 @@ void mt_close(void);
 mt_map_t mt_get_map(void);
 
 void mt_export_map(mt_map_t map, const char *filename);
-void mt_take_screenshot(float x, float y, float width, float height, const char *filename);
+void mt_take_screenshot(const char *filename);
 #ifdef __cplusplus
 }
 #endif

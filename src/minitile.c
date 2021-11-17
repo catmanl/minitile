@@ -14,7 +14,7 @@
 #include "third_party/raygui.h"
 
 #define ADDITIONAL_SIZE   140
-#define MINITILE_VERSION  1.1
+#define MINITILE_VERSION  1.2
 
 // Defines to fit the program
 #define mt_sheet_t          Texture2D
@@ -156,9 +156,12 @@ mt_map_t mt_get_map(void)
   return MAP;
 }
 
-void mt_take_screenshot(float x, float y, float width, float height, const char *filename)
+void mt_take_screenshot(const char *filename)
 {
-  Rectangle rec = { x, y, width, height };
+  Image image = LoadImageFromTexture(DATA.target.texture);
+  ImageFlipVertical(&image);
+  ExportImage(image, filename);
+  UnloadImage(image);
 }
 
 static void mt__update(void)
@@ -262,7 +265,7 @@ static void draw_gui_controls(void)
   // Take a screenshot of the map
   Rectangle ss_button = { (float)(GetScreenWidth() - ADDITIONAL_SIZE + 10), 134.0f, 110.0f, 32.0f };
   if (GuiButton(ss_button, "Take screenshot")) {
-    mt_take_screenshot(0, 0, DATA.grid_width*DATA.tile_size, DATA.grid_height*DATA.tile_size, "mt_map.png");
+    mt_take_screenshot("mt_map.png");
     DATA.screenshot_taken = true;
   }
 

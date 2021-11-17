@@ -1,6 +1,6 @@
 # minitile
 A mini tilemap editor.
-![](./resources/screenshot2.png)
+![](./resources/screenshot.png)
 
 ## Features
 - Small: a compact editor great for prototyping maps
