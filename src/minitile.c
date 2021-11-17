@@ -36,7 +36,9 @@ typedef struct mt_data {
   int layer;
   const char *info_message;
   bool display_exported;
-  int frames_counter;
+  bool screenshot_taken;
+  int frames_counter_1;
+  int frames_counter_2;
 
   // raylib-specific stuff
   mt_sheet_t sheet_loaded;
@@ -86,7 +88,9 @@ void mt_init(int grid_width, int grid_height, int tile_size, const char *sheet_p
   DATA.screen_height = screen_height;
   DATA.scale = scale;
   DATA.display_exported = false;
-  DATA.frames_counter = 0;
+  DATA.screenshot_taken = false;
+  DATA.frames_counter_1 = 0;
+  DATA.frames_counter_2 = 0;
   DATA.sheet_loaded = mt_load_sheet(sheet_path);
   DATA.camera = (Camera2D){
     .offset = (Vector2){ 0.0f, 0.0f },
@@ -149,6 +153,10 @@ mt_map_t mt_get_map(void)
   return MAP;
 }
 
+void mt_take_screenshot(float x, float y, float width, float height, const char *filename)
+{
+}
+
 static void mt__update(void)
 {
   check_input();
@@ -156,10 +164,18 @@ static void mt__update(void)
   DATA.info_message = TextFormat("Minitile v%.1f\t\t\t\t\t\tTiles count: %d\nMap width: %d\t\t\t\tIndex: %d (use A and D)\nMap height: %d\t\t\t Cursor: %d,%d\n", MINITILE_VERSION, DATA.tileset->tileCount, DATA.grid_width, DATA.tileset_index, DATA.grid_height, DATA.mouse_tile_x, DATA.mouse_tile_y);
 
   if (DATA.display_exported) {
-    DATA.frames_counter++;
-    if (DATA.frames_counter >= 180) {
+    DATA.frames_counter_1++;
+    if (DATA.frames_counter_1 >= 180) {
       DATA.display_exported = false;
-      DATA.frames_counter = 0;
+      DATA.frames_counter_1 = 0;
+    }
+  }
+
+  if (DATA.screenshot_taken) {
+    DATA.frames_counter_2++;
+    if (DATA.frames_counter_2 >= 180) {
+      DATA.screenshot_taken = false;
+      DATA.frames_counter_2 = 0;
     }
   }
 }
@@ -232,15 +248,26 @@ static void draw_gui_controls(void)
     DATA.layer = LAYER_WINDOW;
   }
 
+  // Take a screenshot of the map
+  Rectangle ss_button = { (float)(GetScreenWidth() - ADDITIONAL_SIZE + 10), 134.0f, 110.0f, 32.0f };
+  if (GuiButton(ss_button, "Take screenshot")) {
+    mt_take_screenshot(0, 0, DATA.grid_width*DATA.tile_size, DATA.grid_height*DATA.tile_size, "mt_map.png");
+    DATA.screenshot_taken = true;
+  }
+
+  if (DATA.screenshot_taken) {
+    DrawText("Taken screenshot of map!", (GetScreenHeight() - ADDITIONAL_SIZE + 150), (GetScreenHeight() - 50), 20, WHITE);
+  }
+
   // Export the map
-  Rectangle export_button = { (float)(GetScreenWidth() - ADDITIONAL_SIZE + 10), 134.0f, 110.0f, 32.0f };
+  Rectangle export_button = { (float)(GetScreenWidth() - ADDITIONAL_SIZE + 10), 176.0f, 110.0f, 32.0f };
   if (GuiButton(export_button, "Export to .h file")) {
     mt_export_map(mt_get_map(), "mt_map.h");
     DATA.display_exported = true;
   }
 
   if (DATA.display_exported) {
-    DrawText("Exported map to\n    mt_map.h!", export_button.x + 15, export_button.y + 40, 10, WHITE);
+    DrawText("Exported map to mt_map.h!", (GetScreenHeight() - ADDITIONAL_SIZE + 150), (GetScreenHeight() - 50), 20, WHITE);
   }
 
   show_tileset();
