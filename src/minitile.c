@@ -43,6 +43,7 @@ typedef struct mt_data {
   // raylib-specific stuff
   mt_sheet_t sheet_loaded;
   Camera2D camera;
+  RenderTexture2D target;
 
   // Tilemap-specific stuff
   TileMap *tilemap;
@@ -98,6 +99,7 @@ void mt_init(int grid_width, int grid_height, int tile_size, const char *sheet_p
     .rotation = 0.0f,
     .zoom = (float)scale,
   };
+  DATA.target = LoadRenderTexture(DATA.grid_width*DATA.tile_size, DATA.grid_height*DATA.tile_size);
   DATA.layer = LAYER_EDITOR;
 
   if (FileExists(sheet_path)) {
@@ -140,6 +142,7 @@ void mt_close(void)
   TileMapDestroy(DATA.tilemap);
   free(MAP.handle);
   mt_unload_sheet(DATA.sheet_loaded);
+  UnloadRenderTexture(DATA.target);
   CloseWindow();
 }
 
@@ -155,6 +158,7 @@ mt_map_t mt_get_map(void)
 
 void mt_take_screenshot(float x, float y, float width, float height, const char *filename)
 {
+  Rectangle rec = { x, y, width, height };
 }
 
 static void mt__update(void)
@@ -206,10 +210,17 @@ static void check_input(void)
 
 static void mt_draw(void)
 {
+  BeginTextureMode(DATA.target);
+    ClearBackground(BLANK);
+    TileMapDraw(DATA.tilemap);
+  EndTextureMode();
+
   BeginDrawing();
     ClearBackground(DARKGRAY);
     BeginMode2D(DATA.camera);   // Draw everything inside this camera block
-      TileMapDraw(DATA.tilemap);
+      Rectangle target_rec = { 0.0f, 0.0f, (float)DATA.target.texture.width, (float)-DATA.target.texture.height };
+      Vector2 target_pos = { 0.0f, 0.0f };
+      DrawTextureRec(DATA.target.texture, target_rec, target_pos, WHITE);
       TileMapDrawGrid(DATA.tilemap, DATA.grid_on? LIGHTGRAY : BLANK);
       draw_tile_preview();
     EndMode2D();
