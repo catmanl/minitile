@@ -2,14 +2,15 @@ CC = gcc
 SRC = main.c \
 			minitile.c \
 			export.c
-LIBFILE = third_party/libraylib.a		# Linux version
 CFLAGS = -Wall
-LDLIBS = -lGL -lm -lpthread -ldl
 OUT = minitile
 
-default:
-	$(CC) $(SRC) $(LIBFILE) $(CFLAGS) $(LDLIBS) -o $(OUT)
-
+# Windows
 ifeq ($(OS),Windows_NT)
-	@echo Not available on Windows yet
+	LDLIBS = -Lthird_party/windows -lraylib -lopengl32 -lwinmm -lgdi32
+else # Linux
+	LDLIBS = third_party/linux/libraylib.a -lGL -lm -lpthread -ldl
 endif
+
+default:
+	$(CC) $(SRC) $(CFLAGS) $(LDLIBS) -o $(OUT)
