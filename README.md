@@ -30,4 +30,8 @@ Right mouse button - Erase
 ```
 $ make
 ```
-Windows is not available at the moment.
+or
+```
+$ mingw32-make
+```
+on windows
